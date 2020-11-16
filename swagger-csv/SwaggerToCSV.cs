@@ -37,30 +37,53 @@ namespace swagger_csv
                 this.console.WriteLine("URL must be supllied");
                 return -2;
             }
-
-            HttpClient httpClient = new HttpClient();
-            var jsonResponse = await httpClient.GetStringAsync(this.URL);
-
-            SwaggerJSON swaggerJSON = JsonConvert.DeserializeObject<SwaggerJSON>(jsonResponse);
-            
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine("Verbo;API");
-
-            foreach (KeyValuePair<string, Dictionary<string, object>> api in swaggerJSON.Paths)
+            try
             {
-                foreach (KeyValuePair<string, object> verbo in api.Value)
+                HttpClient httpClient = new HttpClient();
+                var jsonResponse = await httpClient.GetStringAsync(this.URL);
+
+                SwaggerJSON swaggerJSON = JsonConvert.DeserializeObject<SwaggerJSON>(jsonResponse);
+
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.AppendLine("Verbo;API");
+
+                foreach (KeyValuePair<string, Dictionary<string, object>> api in swaggerJSON.Paths)
                 {
-                    stringBuilder.AppendLine($"{verbo.Key};{api.Key}");
+                    foreach (KeyValuePair<string, object> verbo in api.Value)
+                    {
+                        stringBuilder.AppendLine($"{verbo.Key};{api.Key}");
+                    }
                 }
-            }
+                using (var sw = new StreamWriter(this.Output))
+                {
+                    sw.Write(stringBuilder.ToString());
+                    sw.Close();
+                }
 
-            using (var sw = new StreamWriter(this.Output))
+                return 0;
+            }
+            catch (DirectoryNotFoundException)
             {
-                sw.Write(stringBuilder.ToString());
-                sw.Close();
+                this.console.WriteLine("Path Not Found");
+                return -2;
             }
-
-            return 0;
+            catch (HttpRequestException ex)
+            {
+                this.console.WriteLine("Bad Request");
+                this.console.WriteLine(ex.Message);
+                return -1;
+            }
+            catch (JsonReaderException)
+            {
+                this.console.WriteLine("Problems with reading JSON. This system is only for Swagger's JSON use.");
+                return -1;
+            }
+            catch (Exception ex)
+            {
+                this.console.WriteLine("Oops! Unknown error:");
+                this.console.WriteLine(ex.Message);
+                return -2;
+            }
         }
     }
 
