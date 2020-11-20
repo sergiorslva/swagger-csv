@@ -1,7 +1,6 @@
 ﻿using McMaster.Extensions.CommandLineUtils;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -23,72 +22,88 @@ namespace swagger_csv
             this.console = console;
         }
 
-        public async Task<int> OnExecute(CommandLineApplication app)
+        public async Task OnExecute(CommandLineApplication app)
+        {            
+            try
+            {
+                if (IsParametersValid(app))
+                {
+                    await GenerateCSVFile();
+                }
+            }
+            catch (DirectoryNotFoundException)
+            {
+                this.console.WriteLine("Path Not Found");                
+            }
+            catch (HttpRequestException ex)
+            {            
+                this.console.WriteLine(ex.Message);                
+            }
+            catch (JsonReaderException ex)
+            {
+                this.console.WriteLine(ex.Message);                
+            }
+            catch (Exception ex)
+            {               
+                this.console.WriteLine(ex.Message);                
+            }
+        }
+
+        private async Task GenerateCSVFile()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("Method;API;Operation ID;Parameters");
+
+            using (HttpClient httpClient = new HttpClient())
+            {
+                var jsonResponse = await httpClient.GetStringAsync(this.URL);
+
+                SwaggerModel swaggerModel = JsonConvert.DeserializeObject<SwaggerModel>(jsonResponse);
+
+                foreach (var item in swaggerModel.Paths)
+                {
+                    string url = item.Key;
+                    foreach (var key in item.Value.Keys)
+                    {
+                        string method = key.ToUpper();
+                        string operationId = item.Value[key].OperationId;
+                        string parameteres = JsonConvert.SerializeObject(item.Value[key].Parameters);
+
+                        stringBuilder.AppendLine($"{method};{url};{operationId};{parameteres}");
+                    }
+                }
+            };
+
+            string extension = Path.GetExtension(this.Output);
+
+            if(string.IsNullOrEmpty(extension) || extension.ToLower() != ".csv")
+            {
+                this.Output += ".csv";
+            }
+
+            using (var sw = new StreamWriter(this.Output))
+            {
+                sw.Write(stringBuilder.ToString());
+                sw.Close();
+            }
+        }
+
+        private bool IsParametersValid(CommandLineApplication app)
         {
             if (app.Options.All(o => o.Values.Count == 0))
             {
                 app.ShowHelp();
-                return -1;
+                return false;
             }
 
             if (string.IsNullOrEmpty(this.URL))
             {
                 app.ShowHint();
                 this.console.WriteLine("URL must be supllied");
-                return -2;
+                return false;
             }
-            try
-            {
-                HttpClient httpClient = new HttpClient();
-                var jsonResponse = await httpClient.GetStringAsync(this.URL);
 
-                SwaggerJSON swaggerJSON = JsonConvert.DeserializeObject<SwaggerJSON>(jsonResponse);
-
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.AppendLine("Verbo;API");
-
-                foreach (KeyValuePair<string, Dictionary<string, object>> api in swaggerJSON.Paths)
-                {
-                    foreach (KeyValuePair<string, object> verbo in api.Value)
-                    {
-                        stringBuilder.AppendLine($"{verbo.Key};{api.Key}");
-                    }
-                }
-                using (var sw = new StreamWriter(this.Output))
-                {
-                    sw.Write(stringBuilder.ToString());
-                    sw.Close();
-                }
-
-                return 0;
-            }
-            catch (DirectoryNotFoundException)
-            {
-                this.console.WriteLine("Path Not Found");
-                return -2;
-            }
-            catch (HttpRequestException ex)
-            {
-                this.console.WriteLine("Bad Request");
-                this.console.WriteLine(ex.Message);
-                return -1;
-            }
-            catch (JsonReaderException)
-            {
-                this.console.WriteLine("Problems with reading JSON. This system is only for Swagger's JSON use.");
-                return -1;
-            }
-            catch (Exception ex)
-            {
-                this.console.WriteLine("Oops! Unknown error:");
-                this.console.WriteLine(ex.Message);
-                return -2;
-            }
+            return true;
         }
-    }
-
-    public class SwaggerJSON
-    {
-        public Dictionary<string, Dictionary<string, object>> Paths { get; set; }
     }
 }

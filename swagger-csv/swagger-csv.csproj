@@ -7,11 +7,24 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>swagger-csv</ToolCommandName>
     <PackageOutputPath>./nupkg</PackageOutputPath>
+    <PackageProjectUrl>https://github.com/sergiorslva/swagger-csv</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/sergiorslva/swagger-csv</RepositoryUrl>
+    <Version>1.0.2</Version>
+    <Authors>Sérgio Rodrigues</Authors>
+    <Company />
+    <Product />
+    <Description>Export tags of Swagger to a csv file.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ApplicationIcon>images\app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="3.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="images\" />
   </ItemGroup>
 
 </Project>

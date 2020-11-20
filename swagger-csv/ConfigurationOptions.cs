@@ -11,8 +11,8 @@ namespace swagger_csv
                         ShowInHelpText = true, ValueName = "URL")]
         public string URL { get; set; }
 
-        [Option(CommandOptionType.SingleValue, Template = "-o|--output",
-                    Description = "Optional. Path from outfile csv file.",
+        [Option(CommandOptionType.SingleValue, Template = "-f|--file",
+                    Description = "Optional. File name to generate",
                     ShowInHelpText = true, ValueName = "Output")]
         public string Output { get; set; } = $"swagger-csv-{DateTime.Now.ToString("hhmmss")}.csv";
     }
