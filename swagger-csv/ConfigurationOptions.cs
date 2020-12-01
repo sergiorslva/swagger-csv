@@ -14,6 +14,6 @@ namespace swagger_csv
         [Option(CommandOptionType.SingleValue, Template = "-f|--file",
                     Description = "Optional. File name to generate",
                     ShowInHelpText = true, ValueName = "Output")]
-        public string Output { get; set; } = $"swagger-csv-{DateTime.Now.ToString("hhmmss")}.csv";
+        public string Output { get; set; } = $"swagger-csv-{DateTime.Now:yyyyMMdd-HHmmss}.csv";
     }
 }
