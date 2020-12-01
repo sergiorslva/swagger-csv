@@ -20,6 +20,8 @@ namespace swagger_csv
         [JsonProperty("parameters")]
         public List<SwaggerParameterModel> Parameters { get; set; }
 
+        [JsonProperty("summary")]
+        public string Summary { get; set; }
     }
 
     public class SwaggerParameterModel
