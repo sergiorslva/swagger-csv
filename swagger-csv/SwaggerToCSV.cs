@@ -87,9 +87,9 @@ namespace swagger_csv
             {
                 this.Output += $"swagger-csv-{ DateTime.Now:yyyyMMdd-HHmmss}.csv";
             }
-            else if (string.IsNullOrEmpty(extension) || extension.Equals(csvExtension, StringComparison.InvariantCultureIgnoreCase))
+            else if (string.IsNullOrEmpty(extension) || !extension.Equals(csvExtension, StringComparison.InvariantCultureIgnoreCase))
             {
-                this.Output += ".csv";
+                this.Output = Path.ChangeExtension(this.Output, csvExtension);
             }
 
             using (var sw = new StreamWriter(this.Output, false, Encoding.UTF8))
